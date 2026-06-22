@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup Buyer Negotiator</title>
+<link rel="stylesheet" href="buyer-negotiator.css">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        🤝 BargainAI
+    </div>
+
+    <div class="nav-links">
+        <a href="#">Marketplace</a>
+        <a href="#">My Negotiations</a>
+
+        <button class="sell-btn">
+            + Sell Item
+        </button>
+    
+    
+
+    <div class="profile">
+        
+        </div>
+
+        <button class="logout-btn">Sign Out</button>
+        </div>
+
+</nav>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Setup Buyer Negotiator</h1>
+
+        <p class="subtitle">
+            Configure your AI agent's budget boundaries and negotiation tactics.
+        </p>
+
+        <label>Maximum Budget (₹)</label>
+
+        <input
+        type="number"
+        placeholder="Quoted price is ₹50,000">
+
+        <small>
+            Your agent will never agree to a price higher than this.
+        </small>
+
+        <h3>Negotiation Strategy (Personality)</h3>
+
+        <div class="strategy active" onclick="selectStrategy(this)">
+            <h4>🤝 The Diplomat</h4>
+            <p>Win-win cooperative mindset. Seeks quick agreement around the middle.</p>
+        </div>
+
+        <div class="strategy" onclick="selectStrategy(this)">
+            <h4>🦈 The Shark</h4>
+            <p>Aggressive hardball negotiator. Stubborn and demands deep discounts.</p>
+        </div>
+
+        <div class="strategy" onclick="selectStrategy(this)">
+            <h4>💰 The Frugal</h4>
+            <p>Value-oriented. Highlights flaws and leverages logistics for deals.</p>
+        </div>
+        
+
+        <button class="start-btn">
+            Initialize AI Negotiator
+        </button>
+
+        
+
+    </div>
+
+</div>
+
+<script>
+function selectStrategy(selected){
+
+    let cards = document.querySelectorAll('.strategy');
+
+    cards.forEach(function(card){
+        card.classList.remove('active');
+    });
+
+    selected.classList.add('active');
+}
+</script>
+
+</body>
+</html>

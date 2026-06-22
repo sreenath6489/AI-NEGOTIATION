@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BargainAI</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        🤝 BargainAI
+    </div>
+
+    <div class="nav-links">
+        <a href="#">Marketplace</a>
+
+        <button class="logout-btn">Sign In</button>
+    </div>
+
+</nav>
+
+<section class="hero">
+
+    <div class="hero-left">
+
+        <h1>
+            Autonomous AI
+            Negotiation Marketplace
+        </h1>
+
+        <p>
+            Welcome to BargainAI. Post your listings,
+            browse goods, and let intelligent AI agents
+            negotiate prices, shipping, and logistics
+            on your behalf.
+        </p>
+
+        <input type="text"
+        placeholder="🔍 Search listing (e.g. iPhone, PlayStation...)">
+
+    </div>
+
+    <div class="hero-right">
+
+        <div class="chat-header">
+            Live Arena Preview
+            <span>ACTIVE CHAT</span>
+        </div>
+
+        <div class="buyer-chat">
+            "Since my client is picking it up today,
+            would you accept ₹40,000?"
+        </div>
+
+        <div class="seller-chat">
+            "We appreciate the quick pickup!
+            The lowest my client will go is ₹43,000."
+        </div>
+
+        <div class="agreement">
+            Probability of Agreement
+            <strong>78% Match</strong>
+        </div>
+
+    </div>
+
+</section>
+
+<div class="categories">
+
+    <button class="active" onclick="selectCategory(this)">All</button>
+    <button onclick="selectCategory(this)">Electronics</button>
+    <button onclick="selectCategory(this)">Vehicles</button>
+    <button onclick="selectCategory(this)">Fashion</button>
+    <button onclick="selectCategory(this)">Home Goods</button>
+    <button onclick="selectCategory(this)">Sports</button>
+    <button onclick="selectCategory(this)">Other</button>
+
+</div>
+
+<br>
+
+<section class="products">
+
+    <div class="card">
+        <img src="https://images.unsplash.com/photo-1544717305-2782549b5136">
+        <p>HOME GOODS</p>
+    </div>
+
+    <div class="card">
+        <img src="https://images.unsplash.com/photo-1523398002811-999ca8dec234">
+        <p>FASHION</p>
+    </div>
+
+    <div class="card">
+        <img src="https://images.unsplash.com/photo-1606813907291-d86efa9b94db">
+        <p>ELECTRONICS</p>
+    </div>
+
+    <div class="card">
+        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9">
+        <p>ELECTRONICS</p>
+    </div>
+
+</section>
+
+<script>
+function selectCategory(selected){
+
+    let buttons = document.querySelectorAll('.categories button');
+
+    buttons.forEach(function(btn){
+        btn.classList.remove('active');
+    });
+
+    selected.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sell Item - BargainAI</title>
+<link rel="stylesheet" href="sell-item.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">🤝 BargainAI</div>
+
+    <div class="nav-links">
+        <a href="#">Marketplace</a>
+        <a href="#">My Negotiations</a>
+
+        <button class="sell-btn">+ Sell Item</button>
+
+        <div class="profile">
+        
+        </div>
+
+        <button class="logout-btn">Sign Out</button>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Sell an Item</h1>
+
+        <p class="subtitle">
+            List your goods and let your AI agent handle incoming negotiations.
+        </p>
+
+        <label>Item Title</label>
+        <input type="text" value="">
+
+        <div class="row">
+
+            <div class="field">
+                <label>Category</label>
+
+                <select>
+                    <option>Electronics</option>
+                    <option>Furniture</option>
+                    <option>Fashion</option>
+                    <option>Vehicles</option>
+                    <option>Home Goods</option>
+                    <option>Sports</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Quoted Price (₹)</label>
+                <input type="number" value="">
+            </div>
+
+        </div>
+
+        <label>Upload Product Photo</label>
+
+        <div class="upload-box">
+            <div class="upload-icon">📸</div>
+            <h4>Click to upload local photo</h4>
+            <p>Supports JPG, PNG up to 5MB</p>
+        </div>
+
+        <label>Detailed Description</label>
+
+        <textarea placeholder="Provide information about the condition, accessories, age, usage, and any other details that can help negotiate."></textarea>
+
+        <button class="submit-btn">
+            Cancel
+        </button>
+
+        <button class="submit-btn">
+            Publish Listing
+        </button>
+
+    </div>
+
+</div>
+
+</body>
+</html>
