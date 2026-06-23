@@ -33,7 +33,7 @@ body{
 }
 
 .logout-btn{
-    background:white;
+    background:rgb(222, 124, 162);
     border:none;
     padding:8px 14px;
     border-radius:20px;
@@ -157,6 +157,15 @@ body{
     border-radius:10px;
     margin-bottom:15px;
     color:#444;
+}
+
+.sell-btn{
+    background:#3f2a1f;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    border-radius:20px;
+    cursor:pointer;
 }
 
 .seller-chat{

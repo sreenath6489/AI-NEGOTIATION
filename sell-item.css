@@ -52,7 +52,7 @@ body{
 }
 
 .logout-btn{
-    background:white;
+    background:rgb(222, 124, 162);
     border:none;
     padding:8px 14px;
     border-radius:20px;
@@ -158,4 +158,22 @@ textarea{
     border-radius:25px;
     cursor:pointer;
     font-size:15px;
+}
+
+.back-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    background: #4cafa8;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.back-btn:hover {
+    background: #4cafa8;
+    transform: scale(1.05);
 }
