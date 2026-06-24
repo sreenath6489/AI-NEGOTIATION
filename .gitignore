@@ -1,0 +1,20 @@
+# Ignore environment variables containing passwords and API keys
+.env
+backend/.env
+
+# Python byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django local database if used
+*.sqlite3
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# OS generated files
+.DS_Store
+Thumbs.db
