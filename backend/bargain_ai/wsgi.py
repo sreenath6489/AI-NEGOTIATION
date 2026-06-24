@@ -1,3 +1,7 @@
-# bargain_ai/wsgi.py
-# Web Server Gateway Interface config.
-# Used by production WSGI servers (like gunicorn) to serve our application.
+import os
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bargain_ai.settings')
+
+application = get_wsgi_application()
+

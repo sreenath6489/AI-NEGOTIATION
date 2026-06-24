@@ -1,3 +1,8 @@
-# bargain_ai/urls.py
-# The primary routing configuration file for the Django project.
-# It defines URL routes pointing to admin panel and links app-specific routes from our api app.
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
+]
+
