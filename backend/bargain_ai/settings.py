@@ -64,7 +64,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'bargain_ai.wsgi'
+WSGI_APPLICATION = 'bargain_ai.wsgi.application'
 
 # Database configuration for MySQL using environment variables
 DATABASES = {
