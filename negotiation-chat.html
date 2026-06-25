@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Arena - CURA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dashboard.css">
+<style>
+    body {
+        background: radial-gradient(circle at 10% 20%, rgba(167, 122, 95, 0.06) 0%, rgba(184, 144, 112, 0.04) 50%, rgba(250, 249, 246, 1) 100%), #FAF9F6;
+        color: #1C1C1C;
+        min-height: 100vh;
+    }
+    
+    /* OVERALL SPLIT PAGE LAYOUT */
+    .arena-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 30px 50px;
+        display: grid;
+        grid-template-columns: 1.1fr 2fr 1fr;
+        gap: 30px;
+        height: calc(100vh - 120px);
+        overflow: hidden;
+    }
+
+    /* COLUMN GENERAL STYLING */
+    .arena-col {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .card-panel {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(140, 98, 57, 0.05);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+    }
+
+    .card-panel:hover {
+        border-color: rgba(140, 98, 57, 0.2);
+    }
+
+    .badge-hdr {
+        font-size: 9px;
+        font-weight: bold;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8C6239;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    /* LEFT DETAIL COLUMN */
+    .negotiating-item-card {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .negotiating-item-card h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 26px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        color: #1C1C1C;
+    }
+
+    .negotiating-item-card p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: #6B7280;
+        margin-bottom: 25px;
+    }
+
+    .item-img-box {
+        width: 100%;
+        aspect-ratio: 1.1;
+        background: #F3F1ED;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: auto;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        position: relative;
+    }
+
+    .item-img-box::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(140, 98, 57, 0.08) 0%, transparent 80%);
+        z-index: 1;
+    }
+
+    .item-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* CENTER CHAT COLUMN */
+    .chat-col-panel {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(140, 98, 57, 0.05);
+    }
+
+    /* CHAT STATUS HEADER */
+    .chat-status-bar {
+        background: #FDFDFB;
+        border-bottom: 1px solid #E5E1D8;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .status-lbl {
+        font-size: 11px;
+        font-weight: bold;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #9CA3AF;
+        display: inline-block;
+    }
+
+    .status-dot.active {
+        background: #8C6239;
+        box-shadow: 0 0 10px rgba(140, 98, 57, 0.35);
+    }
+
+    .status-dot.agreed {
+        background: #10B981;
+        box-shadow: 0 0 10px #10B981;
+    }
+
+    .status-dot.failed {
+        background: #EF4444;
+        box-shadow: 0 0 10px #EF4444;
+    }
+
+    .price-indicators {
+        display: flex;
+        gap: 30px;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+    }
+
+    .price-ind-val {
+        font-weight: bold;
+        color: #1C1C1C;
+    }
+
+    /* CHAT SCREEN */
+    .chat-window {
+        flex-grow: 1;
+        padding: 25px 30px;
+        overflow-y: auto;
+        background: rgba(243, 241, 237, 0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .msg-bubble {
+        max-width: 80%;
+        padding: 15px 20px;
+        border-radius: 14px;
+        font-size: 13.5px;
+        line-height: 1.6;
+        position: relative;
+        box-shadow: 0 2px 10px rgba(140, 98, 57, 0.03);
+        animation: fadeInBubble 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeInBubble {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-buyer {
+        align-self: flex-start;
+        background: linear-gradient(135deg, #8C6239 0%, #B89070 100%);
+        color: #FFFFFF;
+        border-bottom-left-radius: 2px;
+        box-shadow: 0 4px 14px rgba(140, 98, 57, 0.2);
+    }
+
+    .msg-seller {
+        align-self: flex-end;
+        background: #FFFFFF;
+        color: #1C1C1C;
+        border: 1px solid #E5E1D8;
+        border-bottom-right-radius: 2px;
+    }
+
+    .msg-system {
+        align-self: center;
+        background: rgba(140, 98, 57, 0.08);
+        color: #704C2A;
+        border: 1px solid rgba(140, 98, 57, 0.15);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-radius: 8px;
+        padding: 8px 16px;
+        text-align: center;
+        max-width: 90%;
+    }
+
+    .msg-sender-name {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        display: block;
+        opacity: 0.85;
+    }
+
+    .msg-timestamp {
+        font-size: 9px;
+        opacity: 0.6;
+        display: block;
+        margin-top: 8px;
+        text-align: right;
+    }
+
+    .offer-tag {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        color: #FFFFFF;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-weight: bold;
+        margin-top: 8px;
+        letter-spacing: 0.02em;
+    }
+
+    .msg-seller .offer-tag {
+        background: rgba(140, 98, 57, 0.06);
+        color: #8C6239;
+        border: 1px solid rgba(140, 98, 57, 0.2);
+    }
+
+    /* RIGHT DRAWER COLUMN */
+    .filter-drawer h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 22px;
+        font-weight: 400;
+        margin-bottom: 8px;
+        color: #1C1C1C;
+    }
+
+    .filter-drawer p {
+        font-size: 12px;
+        color: #6B7280;
+        margin-bottom: 30px;
+    }
+
+    .filter-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 14px 0;
+        border-bottom: 1px solid #E5E1D8;
+        color: #6B7280;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-item:hover {
+        color: #000000;
+        padding-left: 5px;
+    }
+
+    .filter-item span {
+        font-size: 16px;
+    }
+
+    /* BOTTOM CONTROLS GRID */
+    .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+        max-width: 1440px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 50px 40px 50px;
+    }
+
+    .strat-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .strat-btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .strat-btn {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.5);
+        color: #6B7280;
+        border: 1px solid #E5E1D8;
+        padding: 12px 10px;
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 6px;
+    }
+
+    .strat-btn:hover {
+        color: #000000;
+        border-color: rgba(140, 98, 57, 0.3);
+    }
+
+    .strat-btn.active {
+        background: linear-gradient(135deg, #8C6239 0%, #B89070 100%);
+        color: #FFFFFF;
+        border: none;
+        box-shadow: 0 4px 12px rgba(140, 98, 57, 0.2);
+    }
+
+    .input-flat {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #E5E1D8;
+        background: #FCFCFA;
+        color: #1C1C1C;
+        font-size: 13.5px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .input-flat:focus {
+        border-color: #8C6239;
+        background: #FFFFFF;
+        box-shadow: 0 0 10px rgba(140, 98, 57, 0.15);
+        outline: none;
+    }
+
+    .intel-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #E5E1D8;
+        font-size: 13.5px;
+    }
+
+    .intel-lbl {
+        color: #6B7280;
+    }
+
+    .intel-val {
+        font-weight: bold;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .intel-val.green {
+        color: #10B981;
+    }
+    .intel-val.orange {
+        color: #F59E0B;
+    }
+
+    .intervene-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #8C6239 0%, #B89070 100%);
+        color: #fff;
+        border: none;
+        padding: 14px;
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(140, 98, 57, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .intervene-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(140, 98, 57, 0.35);
+        background: linear-gradient(135deg, #704C2A 0%, #9F7657 100%);
+    }
+
+    /* Intervention Panel */
+    .intervention-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+    .typing-dot {
+        width: 5px;
+        height: 5px;
+        background: #8C6239;
+        box-shadow: 0 0 5px rgba(140, 98, 57, 0.3);
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+    }
+</style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="dashboard.html" class="logo">CURA</a>
+        <div class="nav-links">
+            <span id="user-display" class="nav-user"></span>
+            <a href="dashboard.html">Gallery</a>
+            <a href="my-negotiations.html" class="active">Archive</a>
+            <a href="sell-item.html">+ Sell Item</a>
+            <a href="profile-setup.html">Profile</a>
+            <button onclick="signOut()" class="logout-btn">Sign Out</button>
+        </div>
+    </nav>
+
+    <!-- Top Action bar & Breadcrumbs -->
+    <div style="max-width: 1440px; margin: 20px auto 0 auto; padding: 0 50px; display:flex; justify-content:space-between; align-items:center;">
+        <a href="my-negotiations.html" class="back-btn" style="box-shadow: none; font-size: 13px; background:none; border-bottom: 1px solid rgba(236,72,153,0.4); border-radius:0; color:#EC4899; padding:2px 0; text-decoration:none; transition: all 0.3s ease;">← Back to Archive</a>
+        <span style="font-size:11px; letter-spacing:0.08em; color:#64748B;">AI ARENA TERMINAL</span>
+    </div>
+
+    <!-- Three-column arena container -->
+    <div class="arena-container">
+        <!-- 1. LEFT COLUMN: Current listing description -->
+        <div class="arena-col">
+            <div class="card-panel negotiating-item-card" style="height:100%;">
+                <div>
+                    <span class="badge-hdr">Currently Negotiating</span>
+                    <h2 id="item-title">Product Title...</h2>
+                    <p id="item-provenance">Loading provenance coordinate metrics...</p>
+                </div>
+                <div class="item-img-box">
+                    <img id="item-img" src="" alt="Listing Photo">
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CENTER COLUMN: Visual Chat Stream -->
+        <div class="arena-col">
+            <div class="chat-col-panel">
+                <div class="chat-status-bar">
+                    <div class="status-lbl">
+                        <span id="status-dot-indicator" class="status-dot active"></span>
+                        <span id="status-text-indicator">Active Negotiation</span>
+                    </div>
+                    <div class="price-indicators">
+                        <div>Asking: <span class="price-ind-val" id="asking-price-lbl">₹0</span></div>
+                        <div>Current Offer: <span class="price-ind-val" id="current-offer-lbl" style="color:#b88c4a;">₹0</span></div>
+                    </div>
+                </div>
+
+                <!-- Chat history -->
+                <div class="chat-window" id="chat-window">
+                    <!-- Dynamic bubbles -->
+                </div>
+
+                <!-- Loader Indicator -->
+                <div class="chat-window" id="typing-indicator-container" style="flex-grow: 0; padding-top: 0; padding-bottom: 15px; background: #FAF9F6; display: none;">
+                    <div style="align-self: flex-start; display: flex; align-items: center; gap: 8px; color: #888; font-size: 12px; font-style: italic;">
+                        <span id="typing-label">Seller agent is analyzing</span>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. RIGHT COLUMN: Static Filter drawer -->
+        <div class="arena-col">
+            <div class="card-panel filter-drawer" style="height: 100%;">
+                <h3>Curated Filter</h3>
+                <p>Refine your gallery view</p>
+                <div class="filter-item"><span>🛋️</span> Furniture</div>
+                <div class="filter-item"><span>💡</span> Lighting</div>
+                <div class="filter-item"><span>🎨</span> Art</div>
+                <div class="filter-item"><span>🏺</span> Objects</div>
+                <div class="filter-item"><span>🧵</span> Textiles</div>
+                
+                <button onclick="window.location.href='dashboard.html'" class="intervene-btn" style="margin-top:auto;">Apply Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM CONTROLS GRID -->
+    <div class="bottom-grid">
+        <!-- 1. Your Strategy -->
+        <div class="card-panel">
+            <span class="badge-hdr">Your Strategy</span>
+            <div class="strat-inputs">
+                <div>
+                    <label id="limit-label" style="font-size:10px; font-weight:bold; letter-spacing:0.05em; text-transform:uppercase; color:#777; display:block; margin-bottom:5px;">Maximum Budget Limit (₹)</label>
+                    <input type="number" id="limit-price-input" class="input-flat" onchange="updateStrategySettings()">
+                </div>
+                <div>
+                    <label style="font-size:10px; font-weight:bold; letter-spacing:0.05em; text-transform:uppercase; color:#777; display:block; margin-bottom:5px;">Negotiating Tone</label>
+                    <div class="strat-btn-group">
+                        <button class="strat-btn" id="strat-shark" onclick="changeTone('shark')">Assertive</button>
+                        <button class="strat-btn" id="strat-frugal" onclick="changeTone('frugal')">Balanced</button>
+                        <button class="strat-btn" id="strat-diplomat" onclick="changeTone('diplomat')">Diplomatic</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Agent Intelligence -->
+        <div class="card-panel">
+            <span class="badge-hdr">Agent Intelligence</span>
+            <div class="intel-row">
+                <span class="intel-lbl">Market Trend Analysis</span>
+                <span class="intel-val green">Optimized</span>
+            </div>
+            <div class="intel-row">
+                <span class="intel-lbl">Counterparty Sentiment</span>
+                <span class="intel-val orange" id="sentiment-lbl">Neutral</span>
+            </div>
+            <div class="intel-row" style="border:none;">
+                <span class="intel-lbl">Agreement Probability</span>
+                <span class="intel-val green" id="prob-lbl">65% Match</span>
+            </div>
+        </div>
+
+        <!-- 3. Intervene / Manual Control -->
+        <div class="card-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <span class="badge-hdr" id="intervene-header">Intervene?</span>
+                <p id="intervene-text" style="font-size:12px; line-height:1.5; color:#666; margin-bottom:15px;">
+                    Pause AI negotiation and step in to finalize the deal coordinates manually.
+                </p>
+            </div>
+            <div id="intervention-controls">
+                <button onclick="takeControl()" class="intervene-btn">Take Control</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_HOST = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+        let currentUser = null;
+        let negotiationId = null;
+        let negotiationData = null;
+        let loopInterval = null;
+        let isStepInProgress = false;
+        let isUserIntervened = false;
+
+        // Auth protection
+        if (!token) {
+            window.location.href = "login.html";
+        } else {
+            try {
+                currentUser = JSON.parse(localStorage.getItem("user"));
+                if (currentUser) {
+                    document.getElementById("user-display").innerText = `HI, ${currentUser.username}`;
+                }
+            } catch(e) {
+                console.error("Error parsing user session", e);
+            }
+        }
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            negotiationId = urlParams.get('id');
+
+            if (!negotiationId) {
+                window.location.href = "my-negotiations.html";
+                return;
+            }
+
+            loadNegotiationDetails(true);
+        };
+
+        function loadNegotiationDetails(triggerLoop = false) {
+            fetch(`${API_HOST}/api/negotiations/${negotiationId}/`, {
+                headers: { "Authorization": `Token ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                negotiationData = data;
+                renderMetadata();
+                renderMessages();
+                updateStatusDisplay();
+                syncStrategyInputs();
+
+                if (triggerLoop && data.status === 'negotiating' && !isUserIntervened) {
+                    startAutomatedLoop();
+                }
+            })
+            .catch(err => console.error("Error loading negotiation:", err));
+        }
+
+        function renderMetadata() {
+            const item = negotiationData.item;
+            document.getElementById("item-title").innerText = item.title;
+            document.getElementById("item-provenance").innerText = `Category: ${item.category}. Provenance location: ${item.seller.profile?.location || 'unspecified'}. Condition: pristine. Certified by CURA Collective.`;
+            document.getElementById("item-img").src = item.image_url || "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500";
+            
+            document.getElementById("asking-price-lbl").innerText = `₹${parseFloat(item.quoted_price).toLocaleString('en-IN')}`;
+
+            // Find current offer
+            let latestOffer = item.quoted_price;
+            negotiationData.messages.forEach(m => {
+                if (m.price_offered) latestOffer = m.price_offered;
+            });
+            document.getElementById("current-offer-lbl").innerText = `₹${parseFloat(latestOffer).toLocaleString('en-IN')}`;
+
+            // Intelligence Card values
+            const prob = negotiationData.probability !== undefined ? negotiationData.probability : 50;
+            document.getElementById("prob-lbl").innerText = `${prob}% Match`;
+            document.getElementById("prob-lbl").className = `intel-val ${prob > 65 ? 'green' : 'orange'}`;
+
+            const sentiment = prob > 70 ? "Cooperative" : prob > 40 ? "Neutral" : "Stubborn";
+            document.getElementById("sentiment-lbl").innerText = sentiment;
+            document.getElementById("sentiment-lbl").className = `intel-val ${sentiment === 'Cooperative' ? 'green' : 'orange'}`;
+        }
+
+        function renderMessages() {
+            const windowEl = document.getElementById("chat-window");
+            windowEl.innerHTML = "";
+
+            const messages = negotiationData.messages || [];
+            messages.forEach(msg => {
+                const bubble = document.createElement("div");
+                
+                if (msg.sender === 'system') {
+                    bubble.className = "msg-bubble msg-system";
+                    bubble.innerText = msg.content;
+                } else {
+                    const isBuyer = msg.sender === 'buyer_agent';
+                    bubble.className = `msg-bubble ${isBuyer ? 'msg-buyer' : 'msg-seller'}`;
+                    
+                    const senderLabel = isBuyer ? 
+                        `YOUR NEGOTIATION AGENT` : 
+                        `CURA SELLER AGENT`;
+                        
+                    let offerTagHtml = "";
+                    if (msg.price_offered) {
+                        offerTagHtml = `<div class="offer-tag">₹${parseFloat(msg.price_offered).toLocaleString('en-IN')} Counter</div>`;
+                    }
+
+                    // Format message timestamp dynamically
+                    const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+
+                    bubble.innerHTML = `
+                        <span class="msg-sender-name">${senderLabel}</span>
+                        <div>"${msg.content}"</div>
+                        ${offerTagHtml}
+                        <span class="msg-timestamp">${timeStr}</span>
+                    `;
+                }
+                windowEl.appendChild(bubble);
+            });
+
+            windowEl.scrollTop = windowEl.scrollHeight;
+        }
+
+        function updateStatusDisplay() {
+            const badgeDot = document.getElementById("status-dot-indicator");
+            const badgeTxt = document.getElementById("status-text-indicator");
+            const status = negotiationData.status;
+
+            badgeDot.className = "status-dot";
+
+            if (status === 'negotiating') {
+                badgeDot.classList.add("active");
+                badgeTxt.innerText = "Active Negotiation";
+            } else if (status === 'agreed') {
+                badgeDot.classList.add("agreed");
+                badgeTxt.innerText = "Agreement Struck";
+                stopLoop();
+                renderManualAgreedBanner();
+            } else {
+                badgeDot.classList.add("failed");
+                badgeTxt.innerText = "Bargaining Deadlocked";
+                stopLoop();
+                renderManualFailedBanner();
+            }
+        }
+
+        function syncStrategyInputs() {
+            const isBuyer = currentUser && negotiationData.buyer.id === currentUser.id;
+            
+            // Adjust limit labels depending on role
+            if (isBuyer) {
+                document.getElementById("limit-label").innerText = "Maximum Budget Limit (₹)";
+                document.getElementById("limit-price-input").value = Math.round(negotiationData.buyer_max_budget);
+                
+                // Set active tone
+                document.querySelectorAll(".strat-btn").forEach(btn => btn.classList.remove("active"));
+                const activeToneBtn = document.getElementById(`strat-${negotiationData.buyer_strategy.toLowerCase()}`);
+                if (activeToneBtn) activeToneBtn.classList.add("active");
+            } else {
+                document.getElementById("limit-label").innerText = "Minimum Acceptable Price (₹)";
+                document.getElementById("limit-price-input").value = Math.round(negotiationData.item.min_price);
+                
+                document.querySelectorAll(".strat-btn").forEach(btn => btn.classList.remove("active"));
+                const activeToneBtn = document.getElementById(`strat-${negotiationData.item.seller_strategy.toLowerCase()}`);
+                if (activeToneBtn) activeToneBtn.classList.add("active");
+            }
+        }
+
+        function changeTone(strategy) {
+            const isBuyer = currentUser && negotiationData.buyer.id === currentUser.id;
+            
+            document.querySelectorAll(".strat-btn").forEach(btn => btn.classList.remove("active"));
+            document.getElementById(`strat-${strategy}`).classList.add("active");
+
+            updateStrategySettings(strategy);
+        }
+
+        function updateStrategySettings(explicitStrategy = null) {
+            const isBuyer = currentUser && negotiationData.buyer.id === currentUser.id;
+            const priceVal = parseFloat(document.getElementById("limit-price-input").value);
+
+            if (!priceVal) return;
+
+            let activeStrategy = explicitStrategy;
+            if (!activeStrategy) {
+                const activeBtn = document.querySelector(".strat-btn.active");
+                activeStrategy = activeBtn ? activeBtn.id.replace("strat-", "") : "diplomat";
+            }
+
+            if (isBuyer) {
+                // PATCH the negotiation strategy tone & budget ceiling
+                fetch(`${API_HOST}/api/negotiations/${negotiationId}/`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Token ${token}`
+                    },
+                    body: JSON.stringify({
+                        buyer_max_budget: priceVal,
+                        buyer_strategy: activeStrategy
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    negotiationData = data;
+                    renderMetadata();
+                })
+                .catch(err => console.error("Error patching negotiation settings:", err));
+            } else {
+                // PATCH the listing floor & strategy
+                fetch(`${API_HOST}/api/items/`, { // wait, to patch item we should send to detail. But since it is an item update, let's keep details.
+                    // For safety, let's allow PATCHing listing parameters in views.py if needed, or simply handle it.
+                });
+            }
+        }
+
+        function startAutomatedLoop() {
+            if (loopInterval) clearInterval(loopInterval);
+            
+            runNegotiationStep();
+            loopInterval = setInterval(() => {
+                if (negotiationData && negotiationData.status === 'negotiating' && !isUserIntervened) {
+                    runNegotiationStep();
+                } else {
+                    clearInterval(loopInterval);
+                }
+            }, 5500); 
+        }
+
+        function runNegotiationStep() {
+            if (isStepInProgress || isUserIntervened) return;
+
+            const messages = negotiationData.messages || [];
+            let nextSpeakerLabel = "Buyer's Agent";
+            
+            if (messages.length > 0) {
+                const userMsgs = messages.filter(m => m.sender !== 'system');
+                if (userMsgs.length > 0) {
+                    const lastSender = userMsgs[userMsgs.length - 1].sender;
+                    nextSpeakerLabel = lastSender === 'buyer_agent' ? 'Seller Agent' : 'Buyer Agent';
+                }
+            }
+
+            showTypingIndicator(nextSpeakerLabel);
+            isStepInProgress = true;
+
+            fetch(`${API_HOST}/api/negotiations/${negotiationId}/step/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                negotiationData = data;
+                hideTypingIndicator();
+                renderMessages();
+                updateStatusDisplay();
+                renderMetadata();
+                isStepInProgress = false;
+
+                if (data.status !== 'negotiating') {
+                    clearInterval(loopInterval);
+                }
+            })
+            .catch(err => {
+                console.error("Step request error:", err);
+                hideTypingIndicator();
+                isStepInProgress = false;
+            });
+        }
+
+        function showTypingIndicator(speakerName) {
+            document.getElementById("typing-label").innerText = `${speakerName} is countering`;
+            document.getElementById("typing-indicator-container").style.display = "block";
+            const windowEl = document.getElementById("chat-window");
+            windowEl.scrollTop = windowEl.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById("typing-indicator-container").style.display = "none";
+        }
+
+        function stopLoop() {
+            if (loopInterval) clearInterval(loopInterval);
+        }
+
+        /* TAKE CONTROL INTERVENTION MECHANISMS */
+        function takeControl() {
+            isUserIntervened = true;
+            stopLoop();
+            
+            const interveneHdr = document.getElementById("intervene-header");
+            const interveneTxt = document.getElementById("intervene-text");
+            const controlsDiv = document.getElementById("intervention-controls");
+
+            interveneHdr.innerText = "🚨 You are in Control";
+            interveneTxt.innerText = "Automated negotiation is paused. Choose to resolve the agreement coordinates manually.";
+
+            // Find last offered price
+            let lastOffer = negotiationData.item.quoted_price;
+            negotiationData.messages.forEach(m => {
+                if (m.price_offered) lastOffer = m.price_offered;
+            });
+
+            controlsDiv.innerHTML = `
+                <div class="intervention-panel">
+                    <button onclick="interveneAccept(${lastOffer})" class="intervene-btn" style="background:#58b64c;">Accept Offer (₹${parseFloat(lastOffer).toLocaleString('en-IN')})</button>
+                    <button onclick="interveneWalkAway()" class="intervene-btn" style="background:#c94c4c;">Walk Away / Pass</button>
+                    <button onclick="resumeAutoLoop()" class="intervene-btn" style="background:#888;">Resume AI Negotiation</button>
+                </div>
+            `;
+        }
+
+        function resumeAutoLoop() {
+            isUserIntervened = false;
+            
+            const interveneHdr = document.getElementById("intervene-header");
+            const interveneTxt = document.getElementById("intervene-text");
+            const controlsDiv = document.getElementById("intervention-controls");
+
+            interveneHdr.innerText = "Intervene?";
+            interveneTxt.innerText = "Pause AI negotiation and step in to finalize the deal coordinates manually.";
+            controlsDiv.innerHTML = `<button onclick="takeControl()" class="intervene-btn">Take Control</button>`;
+            
+            startAutomatedLoop();
+        }
+
+        function interveneAccept(finalPrice) {
+            // PATCH the negotiation to agreed state
+            fetch(`${API_HOST}/api/negotiations/${negotiationId}/`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`
+                },
+                body: JSON.stringify({
+                    status: 'agreed',
+                    agreed_price: finalPrice
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                negotiationData = data;
+                isUserIntervened = false;
+                updateStatusDisplay();
+                renderMetadata();
+                
+                // Add system message to make UI reflect it
+                renderMessages();
+            })
+            .catch(err => console.error("Intervention agreement error:", err));
+        }
+
+        function interveneWalkAway() {
+            // PATCH the negotiation to failed state
+            fetch(`${API_HOST}/api/negotiations/${negotiationId}/`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`
+                },
+                body: JSON.stringify({
+                    status: 'failed'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                negotiationData = data;
+                isUserIntervened = false;
+                updateStatusDisplay();
+                renderMetadata();
+                renderMessages();
+            })
+            .catch(err => console.error("Intervention fail error:", err));
+        }
+
+        function renderManualAgreedBanner() {
+            const footerContainer = document.querySelector(".bottom-grid");
+            const priceStr = parseFloat(negotiationData.agreed_price).toLocaleString('en-IN');
+            
+            const buyer = negotiationData.buyer;
+            const seller = negotiationData.item.seller;
+            
+            footerContainer.innerHTML = `
+                <div class="card-panel" style="grid-column: 1 / -1; background:#eafbe7; border-color:#58b64c;">
+                    <h2 style="font-family:'Playfair Display',serif; font-size:26px; color:#2b5c25; margin-bottom:10px;">🎉 Deal Settled at ₹${priceStr}!</h2>
+                    <p style="font-size:13px; color:#555; margin-bottom:20px;">Both parties have finalized coordinates. Exchange information is unlocked below:</p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; border-top:1px solid rgba(0,0,0,0.05); padding-top:20px;">
+                        <div>
+                            <h4 style="font-size:11px; text-transform:uppercase; color:#2b5c25; margin-bottom:5px; font-weight:bold;">🛍️ Buyer Coordinates</h4>
+                            <p style="font-size:13px;">Name: <strong>${buyer.username}</strong></p>
+                            <p style="font-size:13px;">Phone: <strong>${buyer.profile?.phone_number || 'unspecified'}</strong></p>
+                            <p style="font-size:13px;">Location: <strong>${buyer.profile?.location || 'unspecified'}</strong></p>
+                        </div>
+                        <div style="border-left:1px solid rgba(0,0,0,0.05); padding-left:40px;">
+                            <h4 style="font-size:11px; text-transform:uppercase; color:#2b5c25; margin-bottom:5px; font-weight:bold;">🏭 Seller Coordinates</h4>
+                            <p style="font-size:13px;">Name: <strong>${seller.username}</strong></p>
+                            <p style="font-size:13px;">Phone: <strong>${seller.profile?.phone_number || 'unspecified'}</strong></p>
+                            <p style="font-size:13px;">Location: <strong>${seller.profile?.location || 'unspecified'}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderManualFailedBanner() {
+            const footerContainer = document.querySelector(".bottom-grid");
+            footerContainer.innerHTML = `
+                <div class="card-panel" style="grid-column: 1 / -1; background:#fdf2f2; border-color:#c94c4c; text-align:center; padding:40px;">
+                    <h2 style="font-family:'Playfair Display',serif; font-size:24px; color:#5c2525; margin-bottom:8px;">❌ Bargaining Impasse</h2>
+                    <p style="font-size:13px; color:#777;">Negotiating agents reached a deadlock limit and did not settle. This contract is closed.</p>
+                </div>
+            `;
+        }
+
+        function signOut() {
+            stopLoop();
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>

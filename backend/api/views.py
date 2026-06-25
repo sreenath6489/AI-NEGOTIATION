@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import status, views, permissions, generics
@@ -41,7 +42,8 @@ class RegisterView(views.APIView):
 
         return Response({
             "token": token.key,
-            "user": UserSerializer(user).data
+            "user": UserSerializer(user).data,
+            "profile_complete": False
         }, status=status.HTTP_201_CREATED)
 
 class LoginView(views.APIView):
@@ -64,10 +66,92 @@ class LoginView(views.APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+        profile_complete = False
+        if hasattr(user, 'profile'):
+            profile_complete = bool(user.profile.location and user.profile.phone_number)
+
         token, _ = Token.objects.get_or_create(user=user)
         return Response({
             "token": token.key,
-            "user": UserSerializer(user).data
+            "user": UserSerializer(user).data,
+            "profile_complete": profile_complete
+        })
+
+class GoogleLoginView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        credential = request.data.get('credential')
+        if not credential:
+            return Response(
+                {"error": "Google credential token is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Verify the JWT credential token by contacting Google's validation API
+            verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}"
+            response = requests.get(verify_url, timeout=10)
+            if response.status_code != 200:
+                return Response(
+                    {"error": "Invalid Google credential token."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            token_info = response.json()
+            email = token_info.get('email')
+            if not email:
+                return Response(
+                    {"error": "Email not provided by Google account."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            first_name = token_info.get('given_name', '')
+            last_name = token_info.get('family_name', '')
+
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                # Create user with safe unique username derived from email
+                username = email.split('@')[0]
+                base_username = username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                # Create empty profile
+                UserProfile.objects.create(user=user)
+
+            profile_complete = False
+            if hasattr(user, 'profile'):
+                profile_complete = bool(user.profile.location and user.profile.phone_number)
+
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({
+                "token": token.key,
+                "user": UserSerializer(user).data,
+                "profile_complete": profile_complete
+            })
+        except Exception as e:
+            return Response(
+                {"error": f"Google verification failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class ConfigView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        import os
+        return Response({
+            "google_client_id": os.getenv('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com')
         })
 
 # --- USER PROFILE VIEW ---
@@ -198,7 +282,7 @@ class NegotiationListView(generics.ListAPIView):
             item__seller=user
         )
 
-class NegotiationDetailView(generics.RetrieveAPIView):
+class NegotiationDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = NegotiationSerializer
 

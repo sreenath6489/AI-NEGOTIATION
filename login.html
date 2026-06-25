@@ -3,35 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bargain AI Login</title>
+    <title>Login - CURA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="login.css">
+    <!-- Google Identity Services Library -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
     <div class="login-box">
+        <div class="google-logo">CURA</div>
 
-        <div class="google-logo">
-            <span class="blue">G</span>
-            <span class="red">o</span>
-            <span class="yellow">o</span>
-            <span class="blue">g</span>
-            <span class="green">l</span>
-            <span class="red">e</span>
-        </div>
-
-        <h2>Sign in to Bargain AI</h2>
-
+        <h2>Sign in to CURA</h2>
         <p>Secure verification via Google Identity Services</p>
 
-        <br>
+        <!-- Google Sign-In Container -->
+        <div id="google-signin-btn" class="g-signin-button"></div>
+        <div id="google-loading" style="color: #888; font-size: 13px; margin-top: 20px;">Loading Google Sign-In...</div>
 
+        <div class="divider">or</div>
 
+        <!-- Guest / Local Developer Mode -->
+        <div class="guest-form">
+            <p style="font-size: 12px; color: #888; margin-bottom: 5px;">Developer Fallback (Test instantly with any username)</p>
+            <input type="text" id="guest-username" class="guest-input" placeholder="Enter username (e.g. buyer_bob, seller_alice)">
+            <button onclick="loginAsGuest()" class="guest-btn">Sign in as Guest</button>
+        </div>
 
-        <button class="google-btn">
-      
-              Sign in with Google
-        </button>
+        <div id="error-box" class="error-message"></div>
     </div>
 
+    <script>
+        const API_HOST = "http://127.0.0.1:8000";
+
+        window.onload = function() {
+            fetch(`${API_HOST}/api/config/`)
+                .then(res => res.json())
+                .then(data => {
+                    const clientId = data.google_client_id;
+                    document.getElementById("google-loading").style.display = "none";
+                    if (clientId && clientId !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+                        initializeGoogleSignIn(clientId);
+                    } else {
+                        document.getElementById("google-signin-btn").innerHTML = 
+                            `<div style="font-size:11px; color:#888; border: 1px dashed #ccc; padding: 12px; border-radius: 4px; line-height:1.4;">` +
+                            `Google OAuth client ID not set in backend .env. Use Guest Sign-In below.` +
+                            `</div>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching config", err);
+                    document.getElementById("google-loading").style.display = "none";
+                    document.getElementById("google-signin-btn").innerHTML = 
+                        `<div style="font-size:11px; color:#b6493c;">` +
+                        `Failed to connect to Django API backend (${API_HOST}). Make sure the server is running.` +
+                        `</div>`;
+                });
+        };
+
+        function initializeGoogleSignIn(clientId) {
+            google.accounts.id.initialize({
+                client_id: clientId,
+                callback: handleGoogleCredential
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("google-signin-btn"),
+                { theme: "outline", size: "large", width: "320" }
+            );
+        }
+
+        function handleGoogleCredential(response) {
+            const errorBox = document.getElementById("error-box");
+            errorBox.style.display = "none";
+
+            fetch(`${API_HOST}/api/google-login/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ credential: response.credential })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.error || "Google login failed") });
+                }
+                return res.json();
+            })
+            .then(data => {
+                saveSession(data);
+            })
+            .catch(err => {
+                errorBox.innerText = err.message;
+                errorBox.style.display = "block";
+            });
+        }
+
+        function loginAsGuest() {
+            const username = document.getElementById("guest-username").value.trim();
+            const errorBox = document.getElementById("error-box");
+            errorBox.style.display = "none";
+
+            if (!username) {
+                errorBox.innerText = "Please enter a username.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            fetch(`${API_HOST}/api/register/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: username,
+                    password: "testpassword123",
+                    email: `${username}@example.com`
+                })
+            })
+            .then(res => {
+                if (res.status === 400) {
+                    return fetch(`${API_HOST}/api/login/`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            username: username,
+                            password: "testpassword123"
+                        })
+                    }).then(res => {
+                        if (!res.ok) throw new Error("Invalid credentials for existing test user.");
+                        return res.json();
+                    });
+                }
+                if (!res.ok) throw new Error("Guest registration failed.");
+                return res.json();
+            })
+            .then(data => {
+                saveSession(data);
+            })
+            .catch(err => {
+                errorBox.innerText = err.message;
+                errorBox.style.display = "block";
+            });
+        }
+
+        function saveSession(data) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            
+            if (data.profile_complete) {
+                window.location.href = "dashboard.html";
+            } else {
+                window.location.href = "profile-setup.html";
+            }
+        }
+    </script>
 </body>
 </html>

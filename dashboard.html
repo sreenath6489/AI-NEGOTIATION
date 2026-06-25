@@ -3,133 +3,205 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BargainAI</title>
+<title>Gallery - CURA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="dashboard.css">
+<style>
+    .category-link {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
 </head>
 
 <body>
 
 <nav class="navbar">
-
-    <div class="logo">
-        🤝 BargainAI
-    </div>
+    <a href="dashboard.html" class="logo">CURA</a>
 
     <div class="nav-links">
-        <a href="profile-setup.html">
-            <button class="sell-btn">Marketplace</button>
-        </a>
-        
-        <a href="buyer-negotiator.html">
-            <button class="sell-btn">My negotiations</button>
-        </a>
-
-       <a href="sell-item.html">
-        <button class="sell-btn">
-            + Sell Item
-        </button>
-        </a>
-
-        <button class="logout-btn">Sign In</button>
+        <span id="user-display" class="nav-display" style="font-size:12px; color:#666; text-transform:uppercase; letter-spacing:0.05em; margin-right:10px;"></span>
+        <a href="dashboard.html" class="active">Gallery</a>
+        <a href="my-negotiations.html">Archive</a>
+        <a href="sell-item.html">+ Sell Item</a>
+        <a href="profile-setup.html">Profile</a>
+        <button onclick="signOut()" class="logout-btn">Sign Out</button>
     </div>
-
 </nav>
 
+<!-- Curated Hero Header -->
 <section class="hero">
-
-    <div class="hero-left">
-
-        <h1>
-            Autonomous AI
-            Negotiation Marketplace
-        </h1>
-
-        <p>
-            Welcome to BargainAI. Post your listings,
-            browse goods, and let intelligent AI agents
-            negotiate prices, shipping, and logistics
-            on your behalf.
+    <div class="hero-content">
+        <h1 class="hero-title">CURA COLLECTIVE</h1>
+        <p class="hero-subtitle">
+            A digital sanctuary for high-end provenance and architectural design. Let intelligent agents negotiate prices step-by-step on your behalf.
         </p>
-
-        <input type="text"
-        placeholder="🔍 Search listing (e.g. iPhone, PlayStation...)">
-
+        <div style="display: flex; gap: 15px; width: 100%; max-width: 500px; margin-bottom: 25px;">
+            <input type="text" id="search-input" oninput="filterListings()" placeholder="🔍 Search listings (e.g. Monolith, Travertine, Noguchi...)" style="flex-grow: 1;">
+            <button onclick="scrollToCollection()" class="explore-btn">Explore</button>
+        </div>
     </div>
-
-    <div class="hero-right">
-
-        <div class="chat-header">
-            Live Arena Preview
-            <span>ACTIVE CHAT</span>
-        </div>
-
-        <div class="buyer-chat">
-            "Since my client is picking it up today,
-            would you accept ₹40,000?"
-        </div>
-
-        <div class="seller-chat">
-            "We appreciate the quick pickup!
-            The lowest my client will go is ₹43,000."
-        </div>
-
-        <div class="agreement">
-            Probability of Agreement
-            <strong>78% Match</strong>
-        </div>
-
-    </div>
-
 </section>
 
-<div class="categories">
+<!-- Two-Column Asymmetric Marketplace -->
+<div class="market-container">
+    <!-- Left Column: The Collective Provenance & Categories -->
+    <aside class="provenance-column">
+        <h2>The Collective Provenance.</h2>
+        <p>Every object in CURA is verified by our experts. We bridge the gap between architectural history and modern living.</p>
+        
+        <div class="categories-list" id="category-bar">
+            <button class="category-link active" onclick="selectCategory(this, 'All')">All</button>
+            <button class="category-link" onclick="selectCategory(this, 'Electronics')">Electronics</button>
+            <button class="category-link" onclick="selectCategory(this, 'Furniture')">Furniture</button>
+            <button class="category-link" onclick="selectCategory(this, 'Fashion')">Fashion</button>
+            <button class="category-link" onclick="selectCategory(this, 'Vehicles')">Vehicles</button>
+            <button class="category-link" onclick="selectCategory(this, 'Home Goods')">Home Goods</button>
+            <button class="category-link" onclick="selectCategory(this, 'Sports')">Sports</button>
+            <button class="category-link" onclick="selectCategory(this, 'Other')">Other</button>
+        </div>
+    </aside>
 
-    <button class="active" onclick="selectCategory(this)">All</button>
-    <button onclick="selectCategory(this)">Electronics</button>
-    <button onclick="selectCategory(this)">Vehicles</button>
-    <button onclick="selectCategory(this)">Fashion</button>
-    <button onclick="selectCategory(this)">Home Goods</button>
-    <button onclick="selectCategory(this)">Sports</button>
-    <button onclick="selectCategory(this)">Other</button>
-
+    <!-- Right Column: Products Grid -->
+    <main class="products" id="products-grid">
+        <!-- Injected dynamically -->
+    </main>
 </div>
 
-<br>
-
-<section class="products">
-
-    <div class="card">
-        <img src="https://images.unsplash.com/photo-1544717305-2782549b5136">
-        <p>HOME GOODS</p>
+<footer>
+    <div class="logo" style="font-size:18px;">CURA</div>
+    <div class="footer-links">
+        <a href="#">Terms of Service</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Shipping & Provenance</a>
+        <a href="#">Contact</a>
     </div>
-
-    <div class="card">
-        <img src="https://images.unsplash.com/photo-1523398002811-999ca8dec234">
-        <p>FASHION</p>
-    </div>
-
-    <div class="card">
-        <img src="https://images.unsplash.com/photo-1606813907291-d86efa9b94db">
-        <p>ELECTRONICS</p>
-    </div>
-
-    <div class="card">
-        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9">
-        <p>ELECTRONICS</p>
-    </div>
-
-</section>
+    <div>&copy; 2026 CURA Collective. All Rights Reserved.</div>
+</footer>
 
 <script>
-function selectCategory(selected){
+const API_HOST = "http://127.0.0.1:8000";
+const token = localStorage.getItem("token");
+let currentUser = null;
+let allItems = [];
+let selectedCategory = "All";
 
-    let buttons = document.querySelectorAll('.categories button');
+// Auth protection
+if (!token) {
+    window.location.href = "login.html";
+} else {
+    try {
+        currentUser = JSON.parse(localStorage.getItem("user"));
+        if (currentUser) {
+            document.getElementById("user-display").innerText = `HI, ${currentUser.username}`;
+        }
+    } catch(e) {
+        console.error("Error parsing user session", e);
+    }
+}
 
-    buttons.forEach(function(btn){
-        btn.classList.remove('active');
+// Fetch marketplace items on load
+window.onload = function() {
+    fetchListings();
+};
+
+function fetchListings() {
+    const productsGrid = document.getElementById("products-grid");
+    productsGrid.innerHTML = `<div class="empty-state">Loading curated collection...</div>`;
+
+    fetch(`${API_HOST}/api/items/`, {
+        headers: { "Authorization": `Token ${token}` }
+    })
+    .then(res => {
+        if (res.status === 401) {
+            signOut();
+        }
+        return res.json();
+    })
+    .then(data => {
+        allItems = data;
+        renderListings(allItems);
+    })
+    .catch(err => {
+        console.error("Error fetching listings:", err);
+        productsGrid.innerHTML = `<div class="empty-state" style="color:#b44b3e;">Failed to load collection. Make sure the server is running.</div>`;
     });
+}
 
-    selected.classList.add('active');
+function renderListings(items) {
+    const productsGrid = document.getElementById("products-grid");
+    productsGrid.innerHTML = "";
+
+    if (items.length === 0) {
+        productsGrid.innerHTML = `<div class="empty-state">No curated items found in this section.</div>`;
+        return;
+    }
+
+    items.forEach(item => {
+        const isSeller = currentUser && item.seller.id === currentUser.id;
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const imgUrl = item.image_url && item.image_url.trim() !== "" ? item.image_url : "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500";
+        const tagLabel = `${item.category} / ${item.seller_strategy.toUpperCase()} AGENT`;
+
+        card.innerHTML = `
+            <div class="card-img-container">
+                <img src="${imgUrl}" alt="${item.title}">
+            </div>
+            <div class="card-content">
+                <div>
+                    <div class="card-tag">${tagLabel}</div>
+                    <h3>${item.title}</h3>
+                    <p>${item.description}</p>
+                </div>
+                <div class="card-footer">
+                    <span class="card-price">₹${parseFloat(item.quoted_price).toLocaleString('en-IN')}</span>
+                    ${isSeller ? 
+                        `<span style="font-size:10px; font-weight:bold; color:#b6493c; letter-spacing:0.1em; text-transform:uppercase;">Your Listing</span>` : 
+                        `<a href="item-details.html?id=${item.id}" class="card-btn">View Details</a>`
+                    }
+                </div>
+            </div>
+        `;
+        productsGrid.appendChild(card);
+    });
+}
+
+function selectCategory(buttonElement, category) {
+    let buttons = document.querySelectorAll('.category-link');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    buttonElement.classList.add('active');
+
+    selectedCategory = category;
+    filterListings();
+}
+
+function filterListings() {
+    const searchQuery = document.getElementById("search-input").value.toLowerCase();
+    let filtered = allItems;
+
+    if (selectedCategory !== "All") {
+        filtered = filtered.filter(item => item.category === selectedCategory);
+    }
+
+    if (searchQuery) {
+        filtered = filtered.filter(item => 
+            item.title.toLowerCase().includes(searchQuery) || 
+            item.description.toLowerCase().includes(searchQuery)
+        );
+    }
+
+    renderListings(filtered);
+}
+
+function scrollToCollection() {
+    document.querySelector('.market-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+function signOut() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
 }
 </script>
 

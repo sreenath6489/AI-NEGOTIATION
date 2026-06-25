@@ -3,29 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Setup - BargainAI</title>
+    <title>Profile Setup - CURA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="profile-setup.css">
 </head>
 <body>
 
     <nav class="navbar">
-        <div class="logo">
-            🤝 BargainAI
-        </div>
-
+        <a href="dashboard.html" class="logo">CURA</a>
         <div class="nav-links">
-            
-            <a href="#">Marketplace</a>
-            
-            <a href="#">My Negotiations</a>
-
-            <a href="#">+Sell Item</a>
-
-            <a href="dashboard.html" class="back-btn">Back</a>
-
-            <button class="logout-btn">
-                Sign Out
-            </button>
+            <a href="dashboard.html">Gallery</a>
+            <a href="my-negotiations.html">Archive</a>
+            <a href="sell-item.html">+ Sell Item</a>
+            <a href="dashboard.html" class="back-btn" style="padding: 8px 14px;">Back</a>
+            <button onclick="signOut()" class="logout-btn">Sign Out</button>
         </div>
     </nav>
 
@@ -33,9 +24,7 @@
 
         <div class="profile-card">
 
-            <div class="avatar">
-                👤
-            </div>
+            <div class="avatar">👤</div>
 
             <h1>Complete Profile Setup</h1>
 
@@ -43,39 +32,94 @@
                 We need a few more details to set up your BargainAI negotiation profile.
             </p>
 
-            <form>
+            <form id="profile-form" onsubmit="saveProfile(event)">
 
-                <label>Phone Number</label>
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" required placeholder="+1 555-0199">
+                <small>Used strictly for exchanging contact info in final agreed contracts.</small>
 
-                <input
-                type="text"
-                value="">
+                <label for="location">Location (City, State / Country)</label>
+                <input type="text" id="location" required placeholder="San Francisco, CA">
+                <small>Helps your AI agent negotiate local pickup, shipping, and distance convenience.</small>
 
-                <small>
-                    Used strictly for exchanging contact info in final agreed contracts.
-                </small>
-
-                <label>
-                    Location (City, State / Country)
-                </label>
-
-                <input
-                type="text"
-                placeholder="San Francisco, CA">
-
-                <small>
-                    Helps your AI agent negotiate local pickup, shipping, and distance convenience.
-                </small>
-
-                <button class="start-btn">
-                    Get Started
-                </button>
-
+                <button type="submit" class="start-btn">Get Started</button>
             </form>
-
+            <div id="error-box" style="color: #FDA4AF; background: rgba(225, 29, 72, 0.15); border: 1px solid rgba(225, 29, 72, 0.25); padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 15px; display: none;"></div>
         </div>
 
     </div>
 
+    <script>
+        const API_HOST = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+
+        // Auth protection
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        // Fetch existing profile on load
+        window.onload = function() {
+            fetch(`${API_HOST}/api/profile/`, {
+                headers: {
+                    "Authorization": `Token ${token}`
+                }
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    signOut();
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.phone_number) {
+                    document.getElementById("phone").value = data.phone_number;
+                }
+                if (data.location) {
+                    document.getElementById("location").value = data.location;
+                }
+            })
+            .catch(err => console.error("Error loading profile:", err));
+        };
+
+        function saveProfile(event) {
+            event.preventDefault();
+            const phone = document.getElementById("phone").value.trim();
+            const loc = document.getElementById("location").value.trim();
+            const errorBox = document.getElementById("error-box");
+            errorBox.style.display = "none";
+
+            fetch(`${API_HOST}/api/profile/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`
+                },
+                body: JSON.stringify({
+                    phone_number: phone,
+                    location: loc
+                })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(JSON.stringify(err)) });
+                }
+                return res.json();
+            })
+            .then(data => {
+                window.location.href = "dashboard.html";
+            })
+            .catch(err => {
+                errorBox.innerText = "Error saving profile. Please verify your details.";
+                errorBox.style.display = "block";
+            });
+        }
+
+        function signOut() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "login.html";
+        }
+    </script>
 </body>
 </html>

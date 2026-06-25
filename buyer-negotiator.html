@@ -3,93 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setup Buyer Negotiator</title>
+<title>Setup Buyer Negotiator - CURA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="buyer-negotiator.css">
+<style>
+    .item-preview {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 25px;
+    }
+    .item-preview img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+    .item-preview-details h4 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+        font-size: 16px;
+        color: #FFFFFF;
+    }
+    .item-preview-details p {
+        margin: 4px 0 0 0;
+        font-size: 13px;
+        color: #94A3B8;
+    }
+    .error-box {
+        color: #FDA4AF;
+        background: rgba(225, 29, 72, 0.15);
+        border: 1px solid rgba(225, 29, 72, 0.25);
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-bottom: 15px;
+        display: none;
+    }
+</style>
 </head>
 
 <body>
 
 <nav class="navbar">
-
-    <div class="logo">
-        🤝 BargainAI
-    </div>
-
+    <a href="dashboard.html" class="logo">CURA</a>
     <div class="nav-links">
-        <a href="#">Marketplace</a>
-        <a href="#">My Negotiations</a>
-
-        
-        <a href="#">+ Sell Item</a>
-        
-    
-        <a href="dashboard.html" class="back-btn">Back</a>
-
-
-
-        <button class="logout-btn">Sign Out</button>
-        </div>
-
+        <a href="dashboard.html">Gallery</a>
+        <a href="my-negotiations.html">Archive</a>
+        <a href="sell-item.html">+ Sell Item</a>
+        <a href="dashboard.html" class="back-btn" style="padding: 8px 14px;">Back</a>
+        <button onclick="signOut()" class="logout-btn">Sign Out</button>
+    </div>
 </nav>
 
 <div class="container">
 
     <div class="card">
-
         <h1>Setup Buyer Negotiator</h1>
-
         <p class="subtitle">
             Configure your AI agent's budget boundaries and negotiation tactics.
         </p>
 
-        <label>Maximum Budget (₹)</label>
-
-        <input
-        type="number"
-        placeholder="Quoted price is ₹50,000">
-
-        <small>
-            Your agent will never agree to a price higher than this.
-        </small>
-
-        <h3>Negotiation Strategy (Personality)</h3>
-
-        <div class="strategy active" onclick="selectStrategy(this)">
-            <h4>🤝 The Diplomat</h4>
-            <p>Win-win cooperative mindset. Seeks quick agreement around the middle.</p>
+        <!-- Item Preview -->
+        <div id="item-preview-container" class="item-preview" style="display: none;">
+            <img id="item-img" src="" alt="Product Photo">
+            <div class="item-preview-details">
+                <h4 id="item-title">Product Loading...</h4>
+                <p id="item-price">Quoted Price: --</p>
+            </div>
         </div>
 
-        <div class="strategy" onclick="selectStrategy(this)">
-            <h4>🦈 The Shark</h4>
-            <p>Aggressive hardball negotiator. Stubborn and demands deep discounts.</p>
-        </div>
+        <div id="error-message" class="error-box"></div>
 
-        <div class="strategy" onclick="selectStrategy(this)">
-            <h4>💰 The Frugal</h4>
-            <p>Value-oriented. Highlights flaws and leverages logistics for deals.</p>
-        </div>
-        
+        <form id="negotiator-form" onsubmit="initializeNegotiator(event)">
+            <label for="budget">Maximum Budget (₹)</label>
+            <input
+                type="number"
+                id="budget"
+                required
+                min="1"
+                placeholder="Enter maximum budget ceiling">
+            <small>
+                Your agent will never agree to a price higher than this.
+            </small>
 
-        <button class="start-btn">
-            Initialize AI Negotiator
-        </button>
+            <h3>Negotiation Strategy (Personality)</h3>
 
-        
+            <div class="strategy active" onclick="selectStrategy(this, 'diplomat')" id="strat-diplomat">
+                <h4>🤝 The Diplomat</h4>
+                <p>Win-win cooperative mindset. Seeks quick agreement around the middle.</p>
+            </div>
 
+            <div class="strategy" onclick="selectStrategy(this, 'shark')" id="strat-shark">
+                <h4>🦈 The Shark</h4>
+                <p>Aggressive hardball negotiator. Stubborn and demands deep discounts.</p>
+            </div>
+
+            <div class="strategy" onclick="selectStrategy(this, 'frugal')" id="strat-frugal">
+                <h4>💰 The Frugal</h4>
+                <p>Value-oriented. Highlights flaws and leverages logistics for deals.</p>
+            </div>
+
+            <button type="submit" class="start-btn">
+                Initialize AI Negotiator
+            </button>
+        </form>
     </div>
 
 </div>
 
 <script>
-function selectStrategy(selected){
+const API_HOST = "http://127.0.0.1:8000";
+const token = localStorage.getItem("token");
+let selectedStrategy = 'diplomat';
+let targetItem = null;
+let itemId = null;
 
+// Auth protection
+if (!token) {
+    window.location.href = "login.html";
+}
+
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    itemId = urlParams.get('item_id');
+    
+    if (!itemId) {
+        window.location.href = "dashboard.html";
+        return;
+    }
+
+    loadItemDetails();
+};
+
+function loadItemDetails() {
+    fetch(`${API_HOST}/api/items/`, {
+        headers: { "Authorization": `Token ${token}` }
+    })
+    .then(res => res.json())
+    .then(items => {
+        targetItem = items.find(item => item.id == itemId);
+        if (!targetItem) {
+            alert("Listing not found or no longer active.");
+            window.location.href = "dashboard.html";
+            return;
+        }
+
+        // Prepopulate preview
+        document.getElementById("item-title").innerText = targetItem.title;
+        document.getElementById("item-price").innerText = `Quoted Price: ₹${parseFloat(targetItem.quoted_price).toLocaleString('en-IN')}`;
+        document.getElementById("item-img").src = targetItem.image_url || "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500";
+        document.getElementById("item-preview-container").style.display = "flex";
+        
+        document.getElementById("budget").placeholder = `Quoted price is ₹${parseFloat(targetItem.quoted_price).toLocaleString('en-IN')}`;
+    })
+    .catch(err => {
+        console.error("Error loading item details:", err);
+        document.getElementById("error-message").innerText = "Failed to load item details from backend.";
+        document.getElementById("error-message").style.display = "block";
+    });
+}
+
+function selectStrategy(selected, strategy){
+    selectedStrategy = strategy;
     let cards = document.querySelectorAll('.strategy');
-
     cards.forEach(function(card){
         card.classList.remove('active');
     });
-
     selected.classList.add('active');
+}
+
+function initializeNegotiator(event) {
+    event.preventDefault();
+    const budget = parseFloat(document.getElementById("budget").value);
+    const errorBox = document.getElementById("error-message");
+    errorBox.style.display = "none";
+
+    if (!budget) {
+        errorBox.innerText = "Please enter a valid budget limit.";
+        errorBox.style.display = "block";
+        return;
+    }
+
+    const payload = {
+        item_id: parseInt(itemId),
+        buyer_max_budget: budget,
+        buyer_strategy: selectedStrategy
+    };
+
+    fetch(`${API_HOST}/api/negotiations/initiate/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(err => { throw new Error(err.error || "Initialization failed") });
+        }
+        return res.json();
+    })
+    .then(data => {
+        window.location.href = `negotiation-chat.html?id=${data.id}`;
+    })
+    .catch(err => {
+        console.error("Error initiating negotiation:", err);
+        errorBox.innerText = err.message || "Failed to start negotiation session.";
+        errorBox.style.display = "block";
+    });
+}
+
+function signOut() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
 }
 </script>
 

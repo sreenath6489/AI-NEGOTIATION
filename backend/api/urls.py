@@ -5,6 +5,10 @@ urlpatterns = [
     # Authentication endpoints
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.LoginView.as_view(), name='login'),
+    path('google-login/', views.GoogleLoginView.as_view(), name='google-login'),
+    
+    # Config endpoint
+    path('config/', views.ConfigView.as_view(), name='config'),
     
     # Profile endpoint
     path('profile/', views.UserProfileView.as_view(), name='profile'),
